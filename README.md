@@ -1,5 +1,37 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Architecture
+
+This project follows a clear technology split:
+
+### TypeScript
+
+Used for the product application and application backend, including:
+
+- Next.js web app
+- LLM integration layer
+- RAG orchestration layer
+- Router and provider abstraction
+- Tool calling integration
+- Knowledge extraction workflows
+- Application backend logic
+
+### Python
+
+Used for Data Science, ML, and AI analysis work, including:
+
+- Data cleaning
+- Exploratory analysis
+- Feature engineering
+- Forecasting
+- Anomaly detection
+- Model evaluation
+
+This keeps the application runtime in TypeScript while reserving Python for data and ML processing tasks.
+
+- The AI layer is structured as a provider registry and an LLM router so future providers can be added without changing the whole app.
+- No API keys are stored in source code.
+
 ## Getting Started
 
 First, run the development server:
