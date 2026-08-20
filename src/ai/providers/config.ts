@@ -7,7 +7,7 @@ export const providerRegistry: Record<ProviderName, ProviderConfig> = {
     enabled: true,
     apiKeyEnvVar: "GROQ_API_KEY",
     baseUrl: "https://api.groq.com/openai/v1",
-    defaultModel: "llama-3.1-8b-instant",
+    defaultModel: "openai/gpt-oss-20b",
     supportedTasks: ["chat", "analysis", "summary", "classification", "other"],
     notes: [
       "Default provider for the first version.",

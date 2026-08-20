@@ -1,3 +1,5 @@
+require('dotenv').config({ path: '.env.local' });
+
 const Groq = require('groq-sdk');
 
 async function main() {
@@ -9,7 +11,7 @@ async function main() {
 
   const client = new Groq({ apiKey });
   const response = await client.chat.completions.create({
-    model: 'llama-3.1-8b-instant',
+    model: 'openai/gpt-oss-20b',
     messages: [{ role: 'user', content: 'Say hello to Company Brain.' }],
     temperature: 0.7,
   });

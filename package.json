@@ -10,6 +10,7 @@
     "test:groq": "node scripts/test-groq.js"
   },
   "dependencies": {
+    "dotenv": "^17.4.2",
     "groq-sdk": "^1.5.0",
     "next": "16.3.1",
     "react": "19.2.8",
