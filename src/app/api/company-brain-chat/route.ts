@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { llmService } from "@/ai/llm-service";
+import { MAX_LLM_PROMPT_LENGTH, llmService, LLMProviderUnavailableError, LLMRequestValidationError } from "@/ai/llm-service";
+
+const MAX_MESSAGE_LENGTH = MAX_LLM_PROMPT_LENGTH;
 
 export async function POST(request: NextRequest) {
   try {
@@ -7,7 +9,16 @@ export async function POST(request: NextRequest) {
     const message = typeof body?.message === "string" ? body.message.trim() : "";
 
     if (!message) {
-      return NextResponse.json({ error: "Message is required." }, { status: 400 });
+      return NextResponse.json({ error: "Please enter a message before sending." }, { status: 400 });
+    }
+
+    if (message.length > MAX_MESSAGE_LENGTH) {
+      return NextResponse.json(
+        {
+          error: `Your message is too long. Please keep it to ${MAX_MESSAGE_LENGTH} characters or fewer.`,
+        },
+        { status: 413 },
+      );
     }
 
     const result = await llmService.ask({
@@ -21,6 +32,18 @@ export async function POST(request: NextRequest) {
       model: result.model,
     });
   } catch (error) {
+    if (error instanceof LLMRequestValidationError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    if (error instanceof LLMProviderUnavailableError) {
+      console.error("Company Brain chat provider unavailable:", error);
+      return NextResponse.json(
+        { error: error.message },
+        { status: 503 },
+      );
+    }
+
     console.error("Company Brain chat request failed:", error);
     return NextResponse.json(
       { error: "Failed to reach Company Brain." },

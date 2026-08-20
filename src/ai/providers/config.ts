@@ -23,5 +23,9 @@ export function getProviderConfig(name: ProviderName): ProviderConfig {
     throw new Error(`No provider config found for: ${String(name)}`);
   }
 
-  return config;
+  return {
+    ...config,
+    enabled: config.enabled,
+    defaultModel: process.env.GROQ_MODEL || config.defaultModel,
+  };
 }

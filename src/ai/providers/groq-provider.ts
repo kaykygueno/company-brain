@@ -6,7 +6,7 @@ import type { LLMRequest, LLMResponse, LLMTaskType } from "@/ai/types";
 export class GroqProvider extends BaseLLMProvider {
   readonly name = "groq" as const;
   readonly displayName = "Groq";
-  readonly defaultModel = "openai/gpt-oss-20b";
+  readonly defaultModel = getProviderConfig(this.name).defaultModel;
 
   supports(taskType: LLMTaskType): boolean {
     const config = getProviderConfig(this.name);

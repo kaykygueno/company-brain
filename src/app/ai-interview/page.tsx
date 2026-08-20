@@ -6,6 +6,8 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { CompanyBrainLayout } from "@/components/company-brain-layout";
 
+const MAX_MESSAGE_LENGTH = 4000;
+
 type Message = {
   sender: "ai" | "manager" | "user";
   text: string;
@@ -106,6 +108,11 @@ export default function AIInterviewPage() {
 
     const trimmedInput = input.trim();
     if (!trimmedInput || isLoading) {
+      return;
+    }
+
+    if (trimmedInput.length > MAX_MESSAGE_LENGTH) {
+      setError(`Your message is too long. Please keep it to ${MAX_MESSAGE_LENGTH} characters or fewer.`);
       return;
     }
 
@@ -252,10 +259,14 @@ export default function AIInterviewPage() {
             <input
               type="text"
               value={input}
-              onChange={(event) => setInput(event.target.value)}
+              onChange={(event) => {
+                const nextValue = event.target.value.slice(0, MAX_MESSAGE_LENGTH);
+                setInput(nextValue);
+              }}
               placeholder="Ask a question about the business..."
               className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
               disabled={isLoading}
+              maxLength={MAX_MESSAGE_LENGTH}
               aria-label="Chat message input"
             />
             <button
