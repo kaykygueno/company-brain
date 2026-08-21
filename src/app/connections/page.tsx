@@ -1,41 +1,52 @@
 import { CompanyBrainLayout } from "@/components/company-brain-layout";
 
-const connections = [
-  {
-    name: "Google Drive",
-    category: "Document Storage",
-    status: "Not connected",
-    description: "Sync business documents, meeting notes, and reports into Company Brain.",
-  },
+// Static demonstration data — not stored in Convex yet.
+
+const connectors = [
   {
     name: "monday.com",
     category: "Project Management",
-    status: "Not connected",
     description: "Link tasks, projects, and timelines to business decisions and knowledge.",
   },
   {
     name: "Asana",
     category: "Project Management",
-    status: "Not connected",
     description: "Import Asana projects and cross-reference with knowledge and decisions.",
   },
   {
     name: "Jira",
     category: "Issue Tracking",
-    status: "Not connected",
     description: "Connect product development cycles to business context and outcomes.",
   },
   {
-    name: "HubSpot",
-    category: "CRM",
-    status: "Not connected",
-    description: "Surface customer insight and deal history alongside business knowledge.",
+    name: "ClickUp",
+    category: "Project Management",
+    description: "Bring ClickUp tasks and goals into the Company Brain knowledge layer.",
+  },
+  {
+    name: "Trello",
+    category: "Project Management",
+    description: "Surface Trello board activity alongside business knowledge and decisions.",
+  },
+  {
+    name: "Google Drive",
+    category: "Document Storage",
+    description: "Sync business documents, meeting notes, and reports into Company Brain.",
+  },
+  {
+    name: "Google Calendar",
+    category: "Calendar",
+    description: "Connect calendar events to business context, decisions, and milestones.",
   },
   {
     name: "Slack",
     category: "Communication",
-    status: "Not connected",
     description: "Capture decisions and insights shared in team conversations.",
+  },
+  {
+    name: "Salesforce",
+    category: "CRM",
+    description: "Surface customer insight and pipeline data alongside business knowledge.",
   },
 ];
 
@@ -50,11 +61,12 @@ export default function ConnectionsPage() {
           <h2 className="mt-2 text-3xl font-bold text-slate-900">Connections</h2>
           <p className="mt-2 text-sm text-slate-600">
             Connect your existing tools to bring business context into Company Brain.
+            OAuth integration is not yet implemented.
           </p>
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-          {connections.map((conn) => (
+          {connectors.map((conn) => (
             <section
               key={conn.name}
               className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
@@ -64,8 +76,8 @@ export default function ConnectionsPage() {
                   <h3 className="text-base font-semibold text-slate-900">{conn.name}</h3>
                   <p className="mt-0.5 text-xs text-slate-500">{conn.category}</p>
                 </div>
-                <span className="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-500">
-                  {conn.status}
+                <span className="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-400">
+                  Not connected
                 </span>
               </div>
               <p className="mt-3 flex-1 text-sm leading-6 text-slate-600">{conn.description}</p>
