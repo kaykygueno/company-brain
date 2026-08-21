@@ -170,7 +170,7 @@ export default function AIInterviewPage() {
   };
 
   return (
-    <CompanyBrainLayout activePage="AI Interview">
+    <CompanyBrainLayout>
       <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
           <div>

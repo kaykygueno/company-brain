@@ -25,7 +25,7 @@ const settingsGroups = [
 
 export default function SettingsPage() {
   return (
-    <CompanyBrainLayout activePage="Settings">
+    <CompanyBrainLayout>
       <div className="space-y-6">
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">

@@ -1,49 +1,42 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 const navItems = [
   { href: "/", label: "Dashboard" },
+  { href: "/knowledge", label: "Knowledge" },
+  { href: "/decisions", label: "Decisions" },
+  { href: "/insights", label: "Insights" },
+  { href: "/connections", label: "Connections" },
   { href: "/ai-interview", label: "AI Interview" },
-  { href: "/company-knowledge", label: "Company Knowledge" },
-  { href: "/business-data", label: "Business Data" },
-  { href: "/events", label: "Events" },
   { href: "/settings", label: "Settings" },
 ];
 
-export function CompanyBrainLayout({
-  children,
-  activePage,
-}: {
-  children: ReactNode;
-  activePage: string;
-}) {
+export function CompanyBrainLayout({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900">
       <div className="mx-auto flex max-w-[1600px] flex-col lg:flex-row">
-        <aside className="w-full border-b border-slate-200 bg-white lg:w-72 lg:border-b-0 lg:border-r">
+        <aside className="w-full shrink-0 border-b border-slate-200 bg-white lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:border-b-0 lg:border-r lg:overflow-y-auto">
           <div className="flex h-full flex-col p-5">
+            {/* Brand */}
             <div className="mb-6">
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+              <h1 className="text-xl font-bold tracking-tight text-slate-900">
                 Company Brain
               </h1>
-
-              <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
-                <label className="mb-2 block text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
-                  Company
-                </label>
-                <select
-                  defaultValue="DublinBrew"
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none ring-0 focus:border-slate-400"
-                  aria-label="Select company"
-                >
-                  <option value="DublinBrew">DublinBrew</option>
-                </select>
-              </div>
+              <p className="mt-1 text-sm font-medium text-slate-500">DublinBrew</p>
             </div>
 
-            <nav aria-label="Sidebar navigation" className="space-y-2">
+            {/* Nav */}
+            <nav aria-label="Sidebar navigation" className="flex-1 space-y-1">
               {navItems.map((item) => {
-                const isActive = item.label === activePage;
+                const isActive =
+                  item.href === "/"
+                    ? pathname === "/"
+                    : pathname === item.href || pathname.startsWith(item.href + "/");
 
                 return (
                   <Link

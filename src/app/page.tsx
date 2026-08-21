@@ -22,7 +22,7 @@ const recentActivities = [
 
 export default function DashboardPage() {
   return (
-    <CompanyBrainLayout activePage="Dashboard">
+    <CompanyBrainLayout>
       <div className="space-y-6">
         <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">

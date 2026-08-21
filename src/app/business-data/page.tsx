@@ -37,7 +37,7 @@ const sections = [
 
 export default function BusinessDataPage() {
   return (
-    <CompanyBrainLayout activePage="Business Data">
+    <CompanyBrainLayout >
       <div className="space-y-6">
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
