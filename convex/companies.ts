@@ -176,6 +176,62 @@ export const setActive = mutation({
     },
 });
 
+export const addMembership = mutation({
+    args: {
+        clerkId: v.string(),
+        name: v.string(),
+        email: v.string(),
+        role: membershipRole,
+    },
+    handler: async (ctx, args) => {
+        const { membership: actorMembership, company } = await getActiveMembership(ctx);
+        if (!company || actorMembership?.role !== "Owner") {
+            throw new Error("Only company owners can add members.");
+        }
+
+        const clerkId = args.clerkId.trim();
+        if (!clerkId) {
+            throw new Error("A Clerk user ID is required.");
+        }
+        let user = await ctx.db
+            .query("users")
+            .withIndex("by_clerkId", (index) => index.eq("clerkId", clerkId))
+            .unique();
+        if (!user) {
+            const userId = await ctx.db.insert("users", {
+                clerkId,
+                name: args.name.trim() || "Company Brain user",
+                email: args.email.trim(),
+            });
+            user = await ctx.db.get(userId);
+        }
+        if (!user) {
+            throw new Error("Unable to create the member profile.");
+        }
+
+        const existingMembership = await ctx.db
+            .query("memberships")
+            .withIndex("by_userId_and_companyId", (index) =>
+                index.eq("userId", user._id).eq("companyId", company._id),
+            )
+            .unique();
+        if (existingMembership) {
+            throw new Error("This user already belongs to the active company.");
+        }
+
+        const membershipId = await ctx.db.insert("memberships", {
+            userId: user._id,
+            companyId: company._id,
+            role: args.role,
+            createdAt: Date.now(),
+        });
+        if (!user.activeCompanyId) {
+            await ctx.db.patch(user._id, { activeCompanyId: company._id });
+        }
+        return membershipId;
+    },
+});
+
 export const updateMembershipRole = mutation({
     args: { membershipId: v.id("memberships"), role: membershipRole },
     handler: async (ctx, args) => {

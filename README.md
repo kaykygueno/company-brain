@@ -51,6 +51,41 @@ Convex functions can resolve the signed-in user with
 `await ctx.auth.getUserIdentity()`. The `current` query in `convex/users.ts`
 returns that identity or `null` for an unauthenticated request.
 
+### Manual acceptance tests
+
+Complete these checks with a Clerk account before considering the company flow
+accepted:
+
+1. Create a company named `DublinBrew` and select **Add example dashboard data**.
+2. Create a separate `Test Company` without selecting example data.
+3. Use the company switcher to confirm DublinBrew displays the populated
+	dashboard and Test Company displays the empty dashboard state.
+4. Confirm company switching never exposes the other company's dashboard data.
+5. When multiple Clerk accounts are available, verify Owner, Admin, and Member
+	permissions using memberships for the same company.
+
+## Knowledge foundation
+
+Company Brain stores knowledge as structured, company-scoped records rather
+than raw conversation transcripts. A `knowledgeItem` is one of `FACT`,
+`PROCESS`, `RULE`, `DECISION`, `REASON`, `LESSON`, `RISK`, or `GOAL`.
+
+Every record includes a title and statement, its source type and reference,
+the person or system that provided it, when it was learned, the user who
+captured it, confidence from 0 to 100, and validity lifecycle fields:
+`active`, `superseded`, or `archived`, with optional validity and review dates.
+
+`knowledgeRelations` creates directed, named edges between two records in the
+same company, such as `causes`, `provides`, `involved in`, `discussed in`, or
+`influenced`. This is the company knowledge graph used by future decision and
+analysis features.
+
+All knowledge reads resolve the authenticated user's active membership first.
+Knowledge creation and graph edits require an `Owner` or `Admin`; `Member`
+accounts can read only the active company's knowledge. The API rejects item
+and relationship identifiers from another company, preventing tenant data
+access through manually changed IDs.
+
 First, run the development server:
 
 ```bash

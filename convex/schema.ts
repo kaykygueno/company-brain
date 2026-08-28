@@ -7,6 +7,23 @@ export const membershipRole = v.union(
     v.literal("Member"),
 );
 
+export const knowledgeType = v.union(
+    v.literal("FACT"),
+    v.literal("PROCESS"),
+    v.literal("RULE"),
+    v.literal("DECISION"),
+    v.literal("REASON"),
+    v.literal("LESSON"),
+    v.literal("RISK"),
+    v.literal("GOAL"),
+);
+
+export const knowledgeStatus = v.union(
+    v.literal("active"),
+    v.literal("superseded"),
+    v.literal("archived"),
+);
+
 export default defineSchema({
     users: defineTable({
         clerkId: v.string(),
@@ -31,4 +48,36 @@ export default defineSchema({
         companyId: v.id("companies"),
         data: v.any(),
     }).index("by_companyId", ["companyId"]),
+    knowledgeItems: defineTable({
+        companyId: v.id("companies"),
+        type: knowledgeType,
+        title: v.string(),
+        statement: v.string(),
+        confidence: v.number(),
+        status: knowledgeStatus,
+        learnedAt: v.number(),
+        validFrom: v.optional(v.number()),
+        validUntil: v.optional(v.number()),
+        reviewedAt: v.optional(v.number()),
+        providedBy: v.string(),
+        sourceType: v.string(),
+        sourceReference: v.optional(v.string()),
+        capturedByUserId: v.id("users"),
+        createdAt: v.number(),
+        updatedAt: v.number(),
+    })
+        .index("by_companyId", ["companyId"])
+        .index("by_companyId_and_type", ["companyId", "type"])
+        .index("by_companyId_and_status", ["companyId", "status"]),
+    knowledgeRelations: defineTable({
+        companyId: v.id("companies"),
+        fromKnowledgeId: v.id("knowledgeItems"),
+        relation: v.string(),
+        toKnowledgeId: v.id("knowledgeItems"),
+        confidence: v.number(),
+        createdByUserId: v.id("users"),
+        createdAt: v.number(),
+    })
+        .index("by_companyId_and_fromKnowledgeId", ["companyId", "fromKnowledgeId"])
+        .index("by_companyId_and_toKnowledgeId", ["companyId", "toKnowledgeId"]),
 });
