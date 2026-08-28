@@ -1,4 +1,8 @@
+"use client";
+
+import { useQuery } from "convex/react";
 import { CompanyBrainLayout } from "@/components/company-brain-layout";
+import { api } from "../../../convex/_generated/api";
 
 // Static demonstration data — not stored in Convex yet.
 
@@ -60,6 +64,21 @@ const sections = [
 ];
 
 export default function SettingsPage() {
+  const viewer = useQuery(api.companies.viewer);
+  const companyName = viewer?.activeCompany?.name ?? "Company";
+  const displaySections = sections.map((section) =>
+    section.id === "company"
+      ? {
+        ...section,
+        fields: section.fields.map((field) =>
+          field.label === "Company name" || field.label === "Trading name"
+            ? { ...field, value: companyName }
+            : field,
+        ),
+      }
+      : section,
+  );
+
   return (
     <CompanyBrainLayout>
       <div className="space-y-6">
@@ -74,7 +93,7 @@ export default function SettingsPage() {
         </div>
 
         <div className="grid gap-5 lg:grid-cols-2">
-          {sections.map((section) => (
+          {displaySections.map((section) => (
             <section
               key={section.id}
               className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"

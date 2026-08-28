@@ -1,3 +1,4 @@
+import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
@@ -26,8 +27,10 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-screen bg-slate-100 text-slate-900">
+        <ClerkProvider>
           <ConvexClientProvider>{children}</ConvexClientProvider>
-        </body>
+        </ClerkProvider>
+      </body>
     </html>
   );
 }

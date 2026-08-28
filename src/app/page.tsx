@@ -1,4 +1,8 @@
+"use client";
+
+import { useQuery } from "convex/react";
 import Link from "next/link";
+import { api } from "../../convex/_generated/api";
 import { CompanyBrainLayout } from "@/components/company-brain-layout";
 
 // Static demonstration data — not stored in Convex yet.
@@ -74,7 +78,40 @@ const outcomeColor: Record<string, string> = {
   "Rolled back": "text-red-600",
 };
 
+type DashboardData = {
+  needsAttention: typeof needsAttention;
+  risks: typeof risks;
+  opportunities: typeof opportunities;
+  questionsForYou: typeof questionsForYou;
+  recentDecisions: typeof recentDecisions;
+  knowledgeSummary: typeof knowledgeSummary;
+  connectedSystems: typeof connectedSystems;
+};
+
 export default function DashboardPage() {
+  const dashboard = useQuery(api.dashboard.current);
+
+  if (dashboard === undefined) {
+    return <CompanyBrainLayout><p className="text-sm text-slate-500">Loading dashboard...</p></CompanyBrainLayout>;
+  }
+
+  if (!dashboard) {
+    return null;
+  }
+
+  if (!dashboard.data) {
+    return (
+      <CompanyBrainLayout>
+        <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{dashboard.company.name}</p>
+          <h2 className="mt-2 text-2xl font-bold text-slate-900">Your dashboard is ready.</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">This company has no recorded dashboard data yet.</p>
+        </div>
+      </CompanyBrainLayout>
+    );
+  }
+
+  const data = dashboard.data as DashboardData;
   return (
     <CompanyBrainLayout>
       <div className="space-y-6">
@@ -83,7 +120,7 @@ export default function DashboardPage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                DublinBrew \xb7 Dashboard
+                {dashboard.company.name} \xb7 Dashboard
               </p>
               <h2 className="mt-1 text-2xl font-bold text-slate-900">
                 Here&apos;s what needs your attention.
@@ -105,7 +142,7 @@ export default function DashboardPage() {
               Needs Attention
             </p>
             <div className="mt-4 space-y-3">
-              {needsAttention.map((item) => (
+              {data.needsAttention.map((item) => (
                 <div
                   key={item.id}
                   className={[
@@ -131,7 +168,7 @@ export default function DashboardPage() {
               Risks
             </p>
             <ul className="mt-4 space-y-3">
-              {risks.map((risk) => (
+              {data.risks.map((risk) => (
                 <li key={risk} className="flex gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm leading-6 text-slate-700">
                   <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-red-400" />
                   {risk}
@@ -148,7 +185,7 @@ export default function DashboardPage() {
               Opportunities
             </p>
             <div className="mt-4 space-y-3">
-              {opportunities.map((opp) => (
+              {data.opportunities.map((opp) => (
                 <div key={opp.title} className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
                   <p className="text-sm font-semibold text-emerald-800">{opp.title}</p>
                   <p className="mt-1 text-xs leading-5 text-emerald-700">{opp.detail}</p>
@@ -162,7 +199,7 @@ export default function DashboardPage() {
               Questions for You
             </p>
             <div className="mt-4 space-y-3">
-              {questionsForYou.map((q) => (
+              {data.questionsForYou.map((q) => (
                 <div key={q.question} className="rounded-xl border border-sky-200 bg-sky-50 p-4">
                   <p className="text-sm font-semibold text-sky-800">{q.question}</p>
                   <p className="mt-1 text-xs leading-5 text-sky-700">{q.context}</p>
@@ -183,7 +220,7 @@ export default function DashboardPage() {
             </Link>
           </div>
           <div className="mt-4 space-y-2">
-            {recentDecisions.map((d) => (
+            {data.recentDecisions.map((d) => (
               <div
                 key={d.title}
                 className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
@@ -212,7 +249,7 @@ export default function DashboardPage() {
               </Link>
             </div>
             <div className="mt-4 grid grid-cols-3 gap-2">
-              {knowledgeSummary.map((k) => (
+              {data.knowledgeSummary.map((k) => (
                 <div key={k.label} className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-center">
                   <p className="text-xl font-bold text-slate-900">{k.count}</p>
                   <p className="mt-0.5 text-xs text-slate-500">{k.label}</p>
@@ -231,7 +268,7 @@ export default function DashboardPage() {
               </Link>
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
-              {connectedSystems.map((sys) => (
+              {data.connectedSystems.map((sys) => (
                 <span
                   key={sys}
                   className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-500"

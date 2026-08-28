@@ -34,6 +34,23 @@ This keeps the application runtime in TypeScript while reserving Python for data
 
 ## Getting Started
 
+## Authentication
+
+Clerk is configured as the application identity provider and Convex receives the
+authenticated Clerk JWT from the client. To complete the connection for each
+Convex deployment:
+
+1. In Clerk, create a JWT template named `convex`.
+2. Set `CLERK_JWT_ISSUER_DOMAIN` in Convex to the JWT template's issuer domain.
+	For local development, run `npx convex env set CLERK_JWT_ISSUER_DOMAIN <issuer-domain>`.
+3. Configure the normal Clerk environment variables in `.env.local`:
+	`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY`.
+4. Deploy the Convex functions with `npx convex dev` or `npx convex deploy`.
+
+Convex functions can resolve the signed-in user with
+`await ctx.auth.getUserIdentity()`. The `current` query in `convex/users.ts`
+returns that identity or `null` for an unauthenticated request.
+
 First, run the development server:
 
 ```bash

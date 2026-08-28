@@ -81,7 +81,7 @@ const normalizeMarkdownText = (value: string) =>
 const starterMessages: Message[] = [
   {
     sender: "ai",
-    text: "Welcome back. I’d like to understand how DublinBrew makes decisions, what matters most to the business, and where knowledge is currently scattered.",
+    text: "Welcome back. I’d like to understand how your company makes decisions, what matters most to the business, and where knowledge is currently scattered.",
   },
   {
     sender: "manager",
