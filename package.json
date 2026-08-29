@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:groq": "node scripts/test-groq.js",
+    "test": "vitest run",
     "dev:convex": "convex dev"
   },
   "dependencies": {
@@ -28,9 +29,11 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "convex-test": "^0.0.56",
     "eslint": "^9",
     "eslint-config-next": "16.3.1",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.11"
   }
 }

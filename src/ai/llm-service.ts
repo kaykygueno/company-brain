@@ -18,6 +18,33 @@ export class LLMProviderUnavailableError extends Error {
 }
 
 /**
+ * Normalizes an error raised anywhere in the AI layer (router, provider, network) into either
+ * an existing LLM error type or a generic fallback, so every caller reports failures consistently.
+ */
+export function classifyLLMError(error: unknown, fallbackMessage = "Failed to reach Company Brain."): Error {
+  if (error instanceof LLMRequestValidationError || error instanceof LLMProviderUnavailableError) {
+    return error;
+  }
+
+  const message = error instanceof Error ? error.message.toLowerCase() : "";
+  const isProviderIssue = [
+    "missing groq_api_key",
+    "provider is disabled",
+    "no provider",
+    "api key",
+    "rate limit",
+    "authentication",
+    "invalid api key",
+    "fetch failed",
+    "timed out",
+    "network",
+    "unavailable",
+  ].some((fragment) => message.includes(fragment));
+
+  return isProviderIssue ? new LLMProviderUnavailableError() : new Error(fallbackMessage);
+}
+
+/**
  * LLM Service
  *
  * This is the main application-facing AI service layer.
@@ -55,30 +82,7 @@ export class LLMService {
     try {
       return await this.router.route({ ...request, prompt });
     } catch (error) {
-      if (error instanceof LLMRequestValidationError) {
-        throw error;
-      }
-
-      const message = error instanceof Error ? error.message.toLowerCase() : "";
-      const isProviderIssue = [
-        "missing groq_api_key",
-        "provider is disabled",
-        "no provider",
-        "api key",
-        "rate limit",
-        "authentication",
-        "invalid api key",
-        "fetch failed",
-        "timed out",
-        "network",
-        "unavailable",
-      ].some((fragment) => message.includes(fragment));
-
-      if (isProviderIssue) {
-        throw new LLMProviderUnavailableError();
-      }
-
-      throw new Error("Failed to reach Company Brain.");
+      throw classifyLLMError(error);
     }
   }
 }

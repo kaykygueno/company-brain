@@ -3,13 +3,13 @@ import { mutation, query } from "./_generated/server";
 import { getActiveMembership } from "./companies";
 import { knowledgeStatus, knowledgeType } from "./schema";
 
-function assertKnowledgeManager(role: "Owner" | "Admin" | "Member" | undefined) {
+export function assertKnowledgeManager(role: "Owner" | "Admin" | "Member" | undefined) {
     if (role !== "Owner" && role !== "Admin") {
         throw new Error("Only company owners and admins can manage knowledge.");
     }
 }
 
-function assertConfidence(confidence: number) {
+export function assertConfidence(confidence: number) {
     if (!Number.isInteger(confidence) || confidence < 0 || confidence > 100) {
         throw new Error("Confidence must be a whole number from 0 to 100.");
     }

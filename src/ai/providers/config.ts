@@ -8,7 +8,7 @@ export const providerRegistry: Record<ProviderName, ProviderConfig> = {
     apiKeyEnvVar: "GROQ_API_KEY",
     baseUrl: "https://api.groq.com/openai/v1",
     defaultModel: "openai/gpt-oss-20b",
-    supportedTasks: ["chat", "analysis", "summary", "classification", "other"],
+    supportedTasks: ["chat", "analysis", "summary", "classification", "extraction", "other"],
     notes: [
       "Default provider for the first version.",
       "Future routing may consider task type, complexity, context size, speed, cost, and model availability.",

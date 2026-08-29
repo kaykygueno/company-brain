@@ -24,6 +24,12 @@ export const knowledgeStatus = v.union(
     v.literal("archived"),
 );
 
+export const knowledgeCandidateStatus = v.union(
+    v.literal("PENDING"),
+    v.literal("APPROVED"),
+    v.literal("REJECTED"),
+);
+
 export default defineSchema({
     users: defineTable({
         clerkId: v.string(),
@@ -63,11 +69,34 @@ export default defineSchema({
         sourceType: v.string(),
         sourceReference: v.optional(v.string()),
         capturedByUserId: v.id("users"),
+        // Traces this item back to the knowledgeCandidates record it was approved from, if any.
+        sourceCandidateId: v.optional(v.id("knowledgeCandidates")),
         createdAt: v.number(),
         updatedAt: v.number(),
     })
         .index("by_companyId", ["companyId"])
         .index("by_companyId_and_type", ["companyId", "type"])
+        .index("by_companyId_and_status", ["companyId", "status"]),
+    knowledgeCandidates: defineTable({
+        companyId: v.id("companies"),
+        type: knowledgeType,
+        statement: v.string(),
+        sourceType: v.string(),
+        sourceReference: v.optional(v.string()),
+        // The original evidence (interview excerpt, document text, etc.) that caused the AI to propose this knowledge.
+        evidence: v.string(),
+        confidence: v.number(),
+        // Who or what produced this candidate, e.g. "AI Interview Agent" or a person's name.
+        generatedBy: v.string(),
+        createdByUserId: v.id("users"),
+        createdAt: v.number(),
+        status: knowledgeCandidateStatus,
+        reviewedByUserId: v.optional(v.id("users")),
+        reviewedAt: v.optional(v.number()),
+        rejectedByUserId: v.optional(v.id("users")),
+        rejectedAt: v.optional(v.number()),
+    })
+        .index("by_companyId", ["companyId"])
         .index("by_companyId_and_status", ["companyId", "status"]),
     knowledgeRelations: defineTable({
         companyId: v.id("companies"),

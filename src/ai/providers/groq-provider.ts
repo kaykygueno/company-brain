@@ -31,10 +31,18 @@ export class GroqProvider extends BaseLLMProvider {
     }
 
     const groq = this.getClient();
+    const messages: Groq.Chat.Completions.ChatCompletionMessageParam[] = [];
+    if (request.systemPrompt) {
+      messages.push({ role: "system", content: request.systemPrompt });
+    }
+    messages.push({ role: "user", content: request.prompt });
+
     const completion = await groq.chat.completions.create({
       model: config.defaultModel,
-      messages: [{ role: "user", content: request.prompt }],
-      temperature: 0.7,
+      messages,
+      // Extraction needs deterministic, grounded output rather than creative phrasing.
+      temperature: request.taskType === "extraction" ? 0.2 : 0.7,
+      ...(request.responseFormat === "json_object" ? { response_format: { type: "json_object" as const } } : {}),
     });
 
     const content = completion.choices[0]?.message?.content ?? "No response returned by Groq.";

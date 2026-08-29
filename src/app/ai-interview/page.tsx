@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useMutation } from "convex/react";
 import { useState, type FormEvent } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { CompanyBrainLayout } from "@/components/company-brain-layout";
+import type { ExtractedKnowledgeCandidate } from "@/ai/knowledge-extraction-service";
+import { api } from "../../../convex/_generated/api";
 
 const MAX_MESSAGE_LENGTH = 4000;
 
@@ -102,6 +105,8 @@ export default function AIInterviewPage() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [foundKnowledgeCount, setFoundKnowledgeCount] = useState(0);
+  const createCandidate = useMutation(api.knowledgeCandidates.create);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -120,6 +125,13 @@ export default function AIInterviewPage() {
     setInput("");
     setIsLoading(true);
 
+    // The transcript so far, sent alongside the new message so the backend can look for
+    // knowledge across the whole conversation, not just this one exchange.
+    const priorConversation = messages
+      .filter((message) => !message.isLoading)
+      .map((message) => `${message.sender}: ${message.text}`)
+      .join("\n");
+
     setMessages((currentMessages) => [
       ...currentMessages,
       { sender: "user", text: trimmedInput },
@@ -132,7 +144,7 @@ export default function AIInterviewPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message: trimmedInput }),
+        body: JSON.stringify({ message: trimmedInput, conversation: priorConversation }),
       });
 
       const data = await response.json();
@@ -147,6 +159,29 @@ export default function AIInterviewPage() {
         const filteredMessages = currentMessages.filter((message) => !message.isLoading);
         return [...filteredMessages, { sender: "ai", text: normalizedResponse }];
       });
+
+      // Knowledge identification happens silently in the background: the raw candidates are
+      // never shown in the chat, only sent to the knowledgeCandidates system as PENDING, with
+      // a small count-only indicator so the user knows there is something to review. A failure
+      // here must never surface as a chat error — the conversation already succeeded.
+      const candidates: ExtractedKnowledgeCandidate[] = data.knowledge?.candidates ?? [];
+      if (candidates.length > 0) {
+        try {
+          for (const candidate of candidates) {
+            await createCandidate({
+              type: candidate.type,
+              statement: candidate.statement,
+              sourceType: "ai_interview",
+              evidence: candidate.evidence,
+              confidence: candidate.confidence,
+              generatedBy: "AI Interview Agent",
+            });
+          }
+          setFoundKnowledgeCount((currentCount) => currentCount + candidates.length);
+        } catch (candidateError) {
+          console.error("Failed to submit knowledge candidates:", candidateError);
+        }
+      }
     } catch (caughtError) {
       setMessages((currentMessages) => {
         const filteredMessages = currentMessages.filter((message) => !message.isLoading);
@@ -179,12 +214,23 @@ export default function AIInterviewPage() {
             </p>
             <h2 className="mt-1 text-2xl font-bold text-slate-900">AI Interview</h2>
           </div>
-          <Link
-            href="/"
-            className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
-          >
-            Return to Dashboard
-          </Link>
+          <div className="flex items-center gap-3">
+            {foundKnowledgeCount > 0 ? (
+              <Link
+                href="/knowledge#knowledge-review"
+                className="flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800 transition hover:bg-amber-100"
+              >
+                <span aria-hidden="true">✨</span>
+                Company Brain found {foundKnowledgeCount} potential knowledge {foundKnowledgeCount === 1 ? "item" : "items"} — Review
+              </Link>
+            ) : null}
+            <Link
+              href="/"
+              className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+            >
+              Return to Dashboard
+            </Link>
+          </div>
         </div>
 
         <div className="flex h-[560px] flex-col gap-4 p-5">
