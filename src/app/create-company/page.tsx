@@ -46,10 +46,15 @@ export default function CreateCompanyPage() {
                 <p className="mt-2 text-sm leading-6 text-slate-600">Set up a company workspace. You will be its owner.</p>
                 <label className="mt-6 block text-sm font-semibold text-slate-800" htmlFor="company-name">Company name</label>
                 <input id="company-name" value={name} onChange={(event) => setName(event.target.value)} className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200" maxLength={100} placeholder="Example: DublinBrew" required />
-                <label className="mt-4 flex items-start gap-3 text-sm text-slate-700">
-                    <input type="checkbox" checked={includeDemoData} onChange={(event) => setIncludeDemoData(event.target.checked)} className="mt-0.5 h-4 w-4 rounded border-slate-300" />
-                    <span>Add example dashboard data to this company</span>
-                </label>
+                {process.env.NODE_ENV !== "production" ? (
+                    <label className="mt-4 flex items-start gap-3 text-sm text-slate-700">
+                        <input type="checkbox" checked={includeDemoData} onChange={(event) => setIncludeDemoData(event.target.checked)} className="mt-0.5 h-4 w-4 rounded border-slate-300" />
+                        <span>
+                            Add example dashboard data to this company
+                            <span className="block text-xs text-slate-500">Dev/testing only — fills the dashboard with fictional sample content, not real analysis.</span>
+                        </span>
+                    </label>
+                ) : null}
                 {error ? <p className="mt-4 text-sm text-red-700">{error}</p> : null}
                 <button type="submit" disabled={isSubmitting} className="mt-6 w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60">{isSubmitting ? "Creating..." : "Create company"}</button>
             </form>

@@ -158,6 +158,33 @@ export const create = mutation({
     },
 });
 
+export const members = query({
+    args: {},
+    handler: async (ctx) => {
+        const { company } = await getActiveMembership(ctx);
+        if (!company) {
+            return [];
+        }
+
+        const memberships = await ctx.db
+            .query("memberships")
+            .withIndex("by_companyId", (index) => index.eq("companyId", company._id))
+            .collect();
+
+        return await Promise.all(
+            memberships.map(async (membership) => {
+                const user = await ctx.db.get(membership.userId);
+                return {
+                    membershipId: membership._id,
+                    role: membership.role,
+                    name: user?.name ?? "Unknown user",
+                    email: user?.email ?? "",
+                };
+            }),
+        );
+    },
+});
+
 export const setActive = mutation({
     args: { companyId: v.id("companies") },
     handler: async (ctx, args) => {

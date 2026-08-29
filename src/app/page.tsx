@@ -96,7 +96,7 @@ export default function DashboardPage() {
   }
 
   if (!dashboard) {
-    return null;
+    return <CompanyBrainLayout><p className="text-sm text-slate-500">Loading workspace...</p></CompanyBrainLayout>;
   }
 
   if (!dashboard.data) {
@@ -120,7 +120,7 @@ export default function DashboardPage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                {dashboard.company.name} \xb7 Dashboard
+                {dashboard.company.name} · Dashboard
               </p>
               <h2 className="mt-1 text-2xl font-bold text-slate-900">
                 Here&apos;s what needs your attention.
@@ -144,7 +144,7 @@ export default function DashboardPage() {
             <div className="mt-4 space-y-3">
               {data.needsAttention.map((item) => (
                 <div
-                  key={item.id}
+                  key={item.title}
                   className={[
                     "rounded-xl border p-4",
                     item.severity === "high"

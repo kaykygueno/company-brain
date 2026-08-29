@@ -4,7 +4,8 @@ import { useQuery } from "convex/react";
 import { CompanyBrainLayout } from "@/components/company-brain-layout";
 import { api } from "../../../convex/_generated/api";
 
-// Static demonstration data — not stored in Convex yet.
+// Static demonstration data — not stored in Convex yet. The "company" and "users"
+// sections are overridden below with real data before rendering.
 
 const sections = [
   {
@@ -12,11 +13,11 @@ const sections = [
     title: "Company",
     description: "Profile, trading name, operating details, and business goals.",
     fields: [
-      { label: "Company name", value: "DublinBrew Ltd." },
-      { label: "Trading name", value: "DublinBrew" },
-      { label: "Founded", value: "2011" },
-      { label: "Industry", value: "Beverage Manufacturing" },
-      { label: "Locations", value: "12 branches" },
+      { label: "Company name", value: "—" },
+      { label: "Trading name", value: "—" },
+      { label: "Founded", value: "Not recorded" },
+      { label: "Industry", value: "Not recorded" },
+      { label: "Locations", value: "Not recorded" },
     ],
   },
   {
@@ -24,10 +25,9 @@ const sections = [
     title: "Users",
     description: "Manage who can access Company Brain and at what level.",
     fields: [
-      { label: "Owner", value: "Ciara Brien" },
-      { label: "Admin users", value: "3" },
-      { label: "Read-only users", value: "8" },
-      { label: "Pending invites", value: "2" },
+      { label: "Owner", value: "—" },
+      { label: "Admin users", value: "0" },
+      { label: "Member users", value: "0" },
     ],
   },
   {
@@ -65,19 +65,36 @@ const sections = [
 
 export default function SettingsPage() {
   const viewer = useQuery(api.companies.viewer);
+  const members = useQuery(api.companies.members);
   const companyName = viewer?.activeCompany?.name ?? "Company";
-  const displaySections = sections.map((section) =>
-    section.id === "company"
-      ? {
+
+  const owner = members?.find((member) => member.role === "Owner");
+  const adminCount = members?.filter((member) => member.role === "Admin").length ?? 0;
+  const memberCount = members?.filter((member) => member.role === "Member").length ?? 0;
+
+  const displaySections = sections.map((section) => {
+    if (section.id === "company") {
+      return {
         ...section,
         fields: section.fields.map((field) =>
           field.label === "Company name" || field.label === "Trading name"
             ? { ...field, value: companyName }
             : field,
         ),
-      }
-      : section,
-  );
+      };
+    }
+    if (section.id === "users") {
+      return {
+        ...section,
+        fields: [
+          { label: "Owner", value: owner?.name ?? (members === undefined ? "Loading..." : "—") },
+          { label: "Admin users", value: String(adminCount) },
+          { label: "Member users", value: String(memberCount) },
+        ],
+      };
+    }
+    return section;
+  });
 
   return (
     <CompanyBrainLayout>
