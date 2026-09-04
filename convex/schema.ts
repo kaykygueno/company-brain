@@ -30,6 +30,42 @@ export const knowledgeCandidateStatus = v.union(
     v.literal("REJECTED"),
 );
 
+export const discoveryStatus = v.union(
+    v.literal("NOT_STARTED"),
+    v.literal("BUILDING"),
+    v.literal("READY"),
+    v.literal("FAILED"),
+);
+
+export const sourceKind = v.union(
+    v.literal("OFFICIAL_WEBSITE"),
+    v.literal("GOOGLE_BUSINESS"),
+    v.literal("NEWS"),
+    v.literal("SOCIAL_PROFILE"),
+    v.literal("PUBLIC_DIRECTORY"),
+);
+
+export const sourceStatus = v.union(
+    v.literal("DISCOVERED"),
+    v.literal("COLLECTED"),
+    v.literal("FAILED"),
+);
+
+// Structured detail an adapter can attach to one piece of evidence, alongside
+// its free-text content. Deliberately generic (not "review-only") so future
+// adapters — news, social — can reuse the same shape instead of each growing
+// their own bag of fields. `kind` lets aggregation queries tell evidence
+// sub-types apart (e.g. a review vs. a business-profile summary) without
+// parsing the content text.
+export const evidenceMetadata = v.object({
+    kind: v.optional(v.union(v.literal("review"), v.literal("business_profile"), v.literal("theme_summary"))),
+    rating: v.optional(v.number()),
+    authorName: v.optional(v.string()),
+    publishedAt: v.optional(v.number()),
+    ownerResponse: v.optional(v.string()),
+    location: v.optional(v.string()),
+});
+
 export default defineSchema({
     users: defineTable({
         clerkId: v.string(),
@@ -39,6 +75,12 @@ export default defineSchema({
     }).index("by_clerkId", ["clerkId"]),
     companies: defineTable({
         name: v.string(),
+        website: v.optional(v.string()),
+        country: v.optional(v.string()),
+        industry: v.optional(v.string()),
+        description: v.optional(v.string()),
+        discoveryStatus: discoveryStatus,
+        discoveryStartedAt: v.optional(v.number()),
         createdAt: v.number(),
     }),
     memberships: defineTable({
@@ -83,6 +125,8 @@ export default defineSchema({
         statement: v.string(),
         sourceType: v.string(),
         sourceReference: v.optional(v.string()),
+        // Public-discovery candidates retain a durable link to the exact evidence record.
+        evidenceId: v.optional(v.id("evidence")),
         // The original evidence (interview excerpt, document text, etc.) that caused the AI to propose this knowledge.
         evidence: v.string(),
         confidence: v.number(),
@@ -98,6 +142,31 @@ export default defineSchema({
     })
         .index("by_companyId", ["companyId"])
         .index("by_companyId_and_status", ["companyId", "status"]),
+    sources: defineTable({
+        companyId: v.id("companies"),
+        kind: sourceKind,
+        name: v.string(),
+        url: v.optional(v.string()),
+        status: sourceStatus,
+        discoveredAt: v.number(),
+        collectedAt: v.optional(v.number()),
+        // An adapter's upstream identifier for this source (e.g. a resolved
+        // Google Place ID), cached so repeat collection runs don't have to
+        // re-resolve it against a rate/cost-limited external API every time.
+        externalId: v.optional(v.string()),
+    })
+        .index("by_companyId", ["companyId"])
+        .index("by_companyId_and_kind", ["companyId", "kind"]),
+    evidence: defineTable({
+        companyId: v.id("companies"),
+        sourceId: v.id("sources"),
+        content: v.string(),
+        sourceUrl: v.optional(v.string()),
+        discoveredAt: v.number(),
+        metadata: v.optional(evidenceMetadata),
+    })
+        .index("by_companyId", ["companyId"])
+        .index("by_sourceId", ["sourceId"]),
     knowledgeRelations: defineTable({
         companyId: v.id("companies"),
         fromKnowledgeId: v.id("knowledgeItems"),

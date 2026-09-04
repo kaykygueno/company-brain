@@ -132,7 +132,14 @@ export const viewer = query({
 });
 
 export const create = mutation({
-    args: { name: v.string(), includeDemoData: v.boolean() },
+    args: {
+        name: v.string(),
+        website: v.optional(v.string()),
+        country: v.optional(v.string()),
+        industry: v.optional(v.string()),
+        description: v.optional(v.string()),
+        includeDemoData: v.boolean(),
+    },
     handler: async (ctx, args) => {
         const name = args.name.trim();
         if (name.length < 2 || name.length > 100) {
@@ -143,7 +150,22 @@ export const create = mutation({
         if (!user) {
             throw new Error("Unable to create your Company Brain profile.");
         }
-        const companyId = await ctx.db.insert("companies", { name, createdAt: Date.now() });
+        const normalizeOptionalField = (value: string | undefined, maximumLength: number, fieldName: string) => {
+            const normalized = value?.trim();
+            if (normalized && normalized.length > maximumLength) {
+                throw new Error(`${fieldName} must be ${maximumLength} characters or fewer.`);
+            }
+            return normalized || undefined;
+        };
+        const companyId = await ctx.db.insert("companies", {
+            name,
+            website: normalizeOptionalField(args.website, 2_000, "Website"),
+            country: normalizeOptionalField(args.country, 100, "Country"),
+            industry: normalizeOptionalField(args.industry, 100, "Industry"),
+            description: normalizeOptionalField(args.description, 2_000, "Description"),
+            discoveryStatus: "NOT_STARTED",
+            createdAt: Date.now(),
+        });
         await ctx.db.insert("memberships", {
             userId: user._id,
             companyId,

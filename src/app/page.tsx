@@ -90,6 +90,7 @@ type DashboardData = {
 
 export default function DashboardPage() {
   const dashboard = useQuery(api.dashboard.current);
+  const discovery = useQuery(api.discovery.summary);
 
   if (dashboard === undefined) {
     return <CompanyBrainLayout><p className="text-sm text-slate-500">Loading dashboard...</p></CompanyBrainLayout>;
@@ -104,8 +105,22 @@ export default function DashboardPage() {
       <CompanyBrainLayout>
         <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{dashboard.company.name}</p>
-          <h2 className="mt-2 text-2xl font-bold text-slate-900">Your dashboard is ready.</h2>
-          <p className="mt-2 text-sm leading-6 text-slate-600">This company has no recorded dashboard data yet.</p>
+          <h2 className="mt-2 text-2xl font-bold text-slate-900">{discovery?.status === "BUILDING" ? `Building your understanding of ${dashboard.company.name}...` : "Your dashboard is ready."}</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">Public discoveries are held for review before they become Company Knowledge.</p>
+          <dl className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              ["Sources found", discovery?.sourcesFound ?? 0],
+              ["Pieces of evidence", discovery?.evidenceFound ?? 0],
+              ["Knowledge candidates", discovery?.candidatesFound ?? 0],
+              ["Potential risks", discovery?.potentialRisks ?? 0],
+              ["Opportunities", discovery?.opportunities ?? 0],
+            ].map(([label, count]) => (
+              <div key={label as string} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <dt className="text-xs font-medium text-slate-500">{label}</dt>
+                <dd className="mt-1 text-2xl font-bold text-slate-900">{count}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
       </CompanyBrainLayout>
     );

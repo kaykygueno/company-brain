@@ -66,6 +66,34 @@ accepted:
 
 ## Knowledge foundation
 
+## Public discovery
+
+Creating a company captures its name, website, country, industry, and optional description. **Build Company Brain** creates discovery source plans for the official website (when supplied), Google Business, public news, public company profiles, and public directories.
+
+Discovery preserves provenance as `Source -> Evidence -> Knowledge Candidate -> Knowledge Item`. Collection adapters record public evidence through `discovery.recordEvidence`; that mutation can only create `PENDING` candidates. An Owner or Admin must still approve a candidate before `knowledgeItems` receives a permanent record.
+
+The initial DublinBrew test demonstrates the flow using normal company data and test evidence, without a special-case DublinBrew implementation. Run it with:
+
+```bash
+npm test -- --run convex/discovery.test.ts
+```
+
+### Official website collector (4D.1)
+
+`discovery.collectWebsite` is the first real collection adapter. It is a controlled company researcher, not a general-purpose crawler: given the company's official website, it fetches the homepage, discovers links matching known company-page categories (About, Products, Services, Locations, Contact, Team, FAQ, Pricing, Blog/News, Careers, Company information), and turns each page's readable text into `Evidence` and one `PENDING` `FACT` candidate via `discovery.recordEvidence` — never permanent `knowledgeItems`.
+
+It stays inside fixed limits (`convex/lib/websiteCollector.ts`): a page cap, a per-page byte cap, a bounded redirect chain re-validated against the company's own domain on every hop, a request timeout, a polite delay between requests, and it skips duplicate and obviously irrelevant pages (files, off-domain links, off-topic links). Link discovery, text extraction, and candidate drafting are pure functions, unit-tested against fixture HTML in `convex/lib/websiteCollector.test.ts`; the end-to-end action is tested against a fixture DublinBrew site (including an off-domain redirect and more linked pages than the page budget allows) in `convex/discovery.test.ts`.
+
+### Google Business / customer reviews collector (4D.2)
+
+`discovery.collectGoogleBusiness` is the second collection adapter, aimed at eventually answering "what are customers saying about this company?" It follows the same architecture as the website adapter — `Company -> Business Profile discovery -> Reviews/business information -> Evidence -> Knowledge Candidates` — plus an aggregation stage: `Reviews -> Themes -> Frequency/sentiment -> Candidate`.
+
+It never scrapes Google. It calls Google's public Places API (Find Place, then Place Details) with a server-side API key read from `GOOGLE_PLACES_API_KEY` (set it with `npx convex env set GOOGLE_PLACES_API_KEY <key>`; the action fails with a clear error if it's missing rather than doing nothing). The resolved Google Place ID is cached on the source record so repeat runs don't re-resolve it. Because Google's API caps Place Details at 5 "most relevant" reviews, that is the practical ceiling on reviews per run — the aggregation logic is written to operate over an arbitrary review list either way, so it doesn't need to change if a higher-volume source is added later.
+
+The critical rule: **a single review is recorded as evidence only, never a candidate.** "Great beer!" stays a customer's opinion. Reviews only become a `PENDING` candidate when a theme (Atmosphere, Staff, Product quality, Pricing, Waiting time, Cleanliness, Parking, Location) recurs across multiple independent reviews above a mention-count and coverage-ratio threshold — a negative theme becomes a `RISK` candidate, a positive theme a `FACT`. The theme counts themselves are recorded as their own evidence entry (the numbers), separate from the candidate (the interpretation). Repeat collection runs don't re-propose a theme that already produced a candidate, so periodic re-collection doesn't spam duplicates. The business profile's own aggregate rating (already an aggregation, performed by Google over far more reviews than the API exposes individually) is treated as authoritative enough to propose a `FACT` candidate directly.
+
+Google-specific logic (API calls, response parsing, theme lexicon, aggregation) lives entirely in `convex/lib/googleBusinessCollector.ts`, unit-tested in `convex/lib/googleBusinessCollector.test.ts`; `discovery.ts` only orchestrates it through the same `recordEvidence` / `knowledgeCandidates.create` pipeline the website adapter uses. The end-to-end flow (including repeat-run deduplication and the missing-API-key error) is tested against a fixture DublinBrew Business Profile in `convex/discovery.test.ts`. Adding the next source (news, social, directories) means adding another `convex/lib/<source>Collector.ts` and a thin action in `discovery.ts` — not growing a single file per source.
+
 Company Brain stores knowledge as structured, company-scoped records rather
 than raw conversation transcripts. A `knowledgeItem` is one of `FACT`,
 `PROCESS`, `RULE`, `DECISION`, `REASON`, `LESSON`, `RISK`, or `GOAL`.
